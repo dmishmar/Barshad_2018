@@ -1,6 +1,7 @@
 # Barshad_2018
 
 README file for operation of the code used in Barshad et al 2018 Genome Research
+https://genome.cshlp.org/content/early/2018/06/16/gr.226324.117
 
 1. Please use the "Main_pipeline_Barshad 2018.bsh" file to execute the main code. This file should be run in a LINUX system, and will make use of all other files in the folder.
 The code requires a PYTHON 3 platform.
