@@ -1,0 +1,36 @@
+#!/bin/bash
+
+outputDir=$1 #This is where final and intermediate files will be writen to
+RPKM=$2 #The GTEx RPKM data
+donorInfo=$3 #GTEx_donors_info.csv
+sampleInfo=$4 #GTEx_Data_V6_Annotations_SampleAttributesDS
+Genes=$5 #Genes.csv
+
+#Normalize RPKM values by sample-wide sum
+python RPKM_by_gene_sum.py $RPKM ${outputDir}/Normalized_expression.gct.gz
+
+wait
+#Add sample data for linear regression model
+python generate_data_for_LR.py ${outputDir}/Normalized_expression.gct.gz $donorInfo $sampleInfo ${outputDir}/Normalized_expression_data_for_LR.txt.gz
+
+wait
+#Calculate LR residuals
+python get_skLearn_by_dummy_residuals.py ${outputDir}/Normalized_expression_data_for_LR.txt.gz ${outputDir}/Residuals.txt.gz
+
+wait
+#Calculate residuals correlations over 1000 iteration and plot the medians
+python 1000_random_iteration_to_get_overall_oxphos_genes_heatmap.py ${outputDir}/Residuals.txt.gz $sampleInfo $Genes ${outputDir}/Medain_Correlation_pvalues.csv ${outputDir}/Medain_Correlation_coef.csv ${outputDir}/Medain_Correlation_pvalues.svg ${outputDir}/Medain_Correlation_coef.svg
+
+wait
+#Calculate per-tissue residuals
+mkdir ${outputDir}/by_tissue_residuals/
+wait
+python Divide_residuals_data_by_tissue.py ${outputDir}/Residuals.txt.gz $sampleInfo ${outputDir}/by_tissue_residuals/
+
+wait
+#Calculate and plot per-tissue residuals correlations
+
+mkdir ${outputDir}/by_tissue_correlations_and_heatmaps/
+wait
+python get_by_tissue_oxphos_genes_heatmaps_by_spearmans_from_a_list_of_intra_tissue_residuals_from_gct_gt.py ${outputDir}/by_tissue_residuals/ $Genes ${outputDir}/by_tissue_correlations_and_heatmaps/
+
